@@ -1,6 +1,6 @@
 /* eslint-disable */
 (AssetServices = function () {
-  this.ensureAbsoluteURLs = (baseURL, entrypoints) => {
+  const ensureAbsoluteURLs = (baseURL, entrypoints) => {
     const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
     return entrypoints.map(function (entrypoint) {
       if (!regExpIsAbsoluteURL.test(entrypoint)) {
@@ -9,7 +9,7 @@
       return entrypoint;
     });
   };
-  this.addRef = (entrypoint) => {
+  const addRef = (entrypoint) => {
     const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
     switch (entrypoint.match(pattern)[0]) {
       case ".css":
@@ -27,7 +27,7 @@
         break;
     }
   };
-  this.load = (manifestURL, sources = []) => {
+  const load = (manifestURL, sources = []) => {
     fetch(manifestURL)
       .then(function (response) {
         return response.json();
@@ -38,7 +38,7 @@
           data.entrypoints
         );
         entrypoints.concat(sources).forEach((entrypoint) => {
-          this.addRef(entrypoint);
+          addRef(entrypoint);
         });
       })
       .catch(function () {
