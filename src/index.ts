@@ -1,5 +1,5 @@
-window.AssetServices = function () {
-  const ensureAbsoluteURLs = (baseURL, entrypoints) => {
+(window as any).AssetServices = function () {
+  const ensureAbsoluteURLs = (baseURL: string, entrypoints: string[]) => {
     const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
     return entrypoints.map(function (entrypoint) {
       if (!regExpIsAbsoluteURL.test(entrypoint)) {
@@ -8,15 +8,15 @@ window.AssetServices = function () {
       return entrypoint;
     });
   };
-  const addRef = (entrypoint) => {
+  const addRef = (entrypoint: string) => {
     const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
     // eslint-disable-next-line default-case
-    switch (entrypoint.match(pattern)[0]) {
+    switch (entrypoint.match(pattern)![0]) {
       case ".css":
         let link = document.createElement("link");
         link.rel = "stylesheet";
         link.href = entrypoint;
-        link.async = false;
+        (link as any).async = false;
         document.head.appendChild(link);
         break;
       case ".js":
@@ -27,7 +27,7 @@ window.AssetServices = function () {
         break;
     }
   };
-  const load = (manifestURL, sources = []) => {
+  const load = (manifestURL: string, sources: string[] = []) => {
     fetch(manifestURL)
       .then(function (response) {
         return response.json();
@@ -47,3 +47,5 @@ window.AssetServices = function () {
   };
   return { load: load };
 };
+
+export {};
