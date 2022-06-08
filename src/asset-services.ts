@@ -1,5 +1,5 @@
 export function AssetServices() {
-  const ensureAbsoluteURLs = (baseURL: string, entrypoints: string[]) => {
+  function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
     const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
     return entrypoints.map(function (entrypoint) {
       if (!regExpIsAbsoluteURL.test(entrypoint)) {
@@ -7,8 +7,9 @@ export function AssetServices() {
       }
       return entrypoint;
     });
-  };
-  const addRef = (entrypoint: string) => {
+  }
+
+  function addRef(entrypoint: string) {
     const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
     // eslint-disable-next-line default-case
     switch (entrypoint.match(pattern)![0]) {
@@ -26,8 +27,9 @@ export function AssetServices() {
         document.body.appendChild(script);
         break;
     }
-  };
-  const load = (manifestURL: string, sources: string[] = []) => {
+  }
+
+  function load(manifestURL: string, sources: string[] = []) {
     fetch(manifestURL)
       .then(function (response) {
         return response.json();
@@ -44,6 +46,7 @@ export function AssetServices() {
       .catch(function () {
         throw new Error("Error getting assets file: " + manifestURL);
       });
-  };
+  }
+
   return { load: load };
 }
