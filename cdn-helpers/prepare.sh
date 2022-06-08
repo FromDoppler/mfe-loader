@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# TODO: Do not publish asset-manifest file, maybe in this case, the version could be part of the name
+
 # constants
 build="./build"
 ready="./ready"
