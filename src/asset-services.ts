@@ -29,23 +29,20 @@ export function AssetServices() {
     }
   }
 
-  function load(manifestURL: string, sources: string[] = []) {
-    fetch(manifestURL)
-      .then(function (response) {
-        return response.json();
-      })
-      .then(function (data) {
-        const entrypoints = ensureAbsoluteURLs(
-          manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
-          data.entrypoints
-        );
-        entrypoints.concat(sources).forEach((entrypoint) => {
-          addRef(entrypoint);
-        });
-      })
-      .catch(function () {
-        throw new Error("Error getting assets file: " + manifestURL);
+  async function load(manifestURL: string, sources: string[] = []) {
+    try {
+      const response = await fetch(manifestURL);
+      const data = await response.json();
+      const entrypoints = ensureAbsoluteURLs(
+        manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
+        data.entrypoints
+      );
+      entrypoints.concat(sources).forEach((entrypoint) => {
+        addRef(entrypoint);
       });
+    } catch (error) {
+      throw new Error("Error getting assets file: " + manifestURL);
+    }
   }
 
   return { load: load };
