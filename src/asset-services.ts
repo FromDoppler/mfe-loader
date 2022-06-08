@@ -10,7 +10,6 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
 
 function addRef(entrypoint: string) {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
-  // eslint-disable-next-line default-case
   switch (entrypoint.match(pattern)![0]) {
     case ".css":
       let link = document.createElement("link");
@@ -24,6 +23,9 @@ function addRef(entrypoint: string) {
       script.src = entrypoint;
       script.async = false;
       document.body.appendChild(script);
+      break;
+    default:
+      // do nothing
       break;
   }
 }
