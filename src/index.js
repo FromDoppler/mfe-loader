@@ -1,5 +1,4 @@
-/* eslint-disable */
-(AssetServices = function () {
+window.AssetServices = function () {
   const ensureAbsoluteURLs = (baseURL, entrypoints) => {
     const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
     return entrypoints.map(function (entrypoint) {
@@ -11,6 +10,7 @@
   };
   const addRef = (entrypoint) => {
     const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
+    // eslint-disable-next-line default-case
     switch (entrypoint.match(pattern)[0]) {
       case ".css":
         let link = document.createElement("link");
@@ -46,4 +46,4 @@
       });
   };
   return { load: load };
-})();
+};
