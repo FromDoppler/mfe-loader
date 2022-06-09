@@ -8,7 +8,7 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   });
 }
 
-function addRef(entrypoint: string) {
+function addRef(document: Document, entrypoint: string) {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
   switch (entrypoint.match(pattern)![0]) {
     case ".css":
@@ -30,10 +30,17 @@ function addRef(entrypoint: string) {
   }
 }
 
-async function load(
-  manifestURL: string,
-  sources: string[] = []
-): Promise<void> {
+async function load({
+  fetch,
+  document,
+  manifestURL,
+  sources,
+}: {
+  fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  document: Document;
+  manifestURL: string;
+  sources: string[];
+}): Promise<void> {
   try {
     const response = await fetch(manifestURL);
     const data = await response.json();
@@ -42,7 +49,7 @@ async function load(
       data.entrypoints
     );
     entrypoints.concat(sources).forEach((entrypoint) => {
-      addRef(entrypoint);
+      addRef(document, entrypoint);
     });
   } catch (error) {
     throw new Error("Error getting assets file: " + manifestURL);
@@ -54,5 +61,29 @@ interface IAssetServices {
 }
 
 export class AssetServices implements IAssetServices {
-  load = load;
+  private _fetch: (
+    input: RequestInfo,
+    init?: RequestInit | undefined
+  ) => Promise<Response>;
+  private _document: Document;
+
+  constructor({
+    fetch,
+    document,
+  }: {
+    fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+    document: Document;
+  } = window) {
+    this._fetch = fetch;
+    this._document = document;
+  }
+
+  load(manifestURL: string, sources: string[] = []) {
+    return load({
+      fetch: this._fetch,
+      document: this._document,
+      manifestURL,
+      sources,
+    });
+  }
 }
