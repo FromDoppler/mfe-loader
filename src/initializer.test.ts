@@ -18,4 +18,19 @@ describe(addAssetServicesToWindow.name, () => {
     expect(instance).toHaveProperty("load");
     expect(instance.load).toBeInstanceOf(Function);
   });
+
+  it("should create global namespace assetServices", () => {
+    // Arrange
+    const windowDouble: any = {};
+    const namespaceName = "assetServices";
+
+    // Act
+    addAssetServicesToWindow(windowDouble);
+
+    // Assert
+    expect(windowDouble).toHaveProperty(namespaceName);
+    expect(windowDouble[namespaceName]).toBeInstanceOf(Object);
+    expect(windowDouble[namespaceName]).toHaveProperty("load");
+    expect(windowDouble[namespaceName].load).toBeInstanceOf(Function);
+  });
 });
