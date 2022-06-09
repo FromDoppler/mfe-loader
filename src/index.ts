@@ -1,3 +1,3 @@
-import { AssetServices } from "./asset-services";
+import { addAssetServicesToWindow } from "./initializer";
 
-(window as any).AssetServices = AssetServices;
+addAssetServicesToWindow(window);
