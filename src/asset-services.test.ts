@@ -28,7 +28,7 @@ describe(AssetServices.name, () => {
     });
   });
 
-  describe("load", () => {
+  describe("load (obsolete)", () => {
     it("should load manifest from specified URL", async () => {
       // Arrange
       const manifestURL =
@@ -124,6 +124,126 @@ describe(AssetServices.name, () => {
 
       // Act
       await instance.load(manifestURL, sources);
+
+      // Assert
+      expect(windowMoq.document.body.appendChild).toHaveBeenCalledTimes(
+        expectedJsAppendUrls.length
+      );
+      expectedJsAppendUrls.forEach((url) => {
+        expect(windowMoq.document.body.appendChild).toHaveBeenCalledWith({
+          async: false,
+          src: url,
+        });
+      });
+      expect(windowMoq.document.head.appendChild).toHaveBeenCalledTimes(
+        expectedCssAppendUrls.length
+      );
+      expectedCssAppendUrls.forEach((url) => {
+        expect(windowMoq.document.head.appendChild).toHaveBeenCalledWith({
+          rel: "stylesheet",
+          async: false,
+          href: url,
+        });
+      });
+    });
+  });
+
+  describe("load (with object literal parameter)", () => {
+    it("should load manifest from specified URL", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: [],
+      };
+      const windowMoq = createWindowMoq(responseJson);
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await instance.load({ manifestURL });
+
+      // Assert
+      expect(windowMoq.fetch).toHaveBeenCalledTimes(1);
+      expect(windowMoq.fetch).toHaveBeenCalledWith(manifestURL);
+    });
+
+    it("should update create elements for javascript files", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: [
+          "static/js/main.cf47d9fd.js",
+          "https://absolute/absolute.js",
+        ],
+      };
+      const expectedCreatedScriptElements = responseJson.entrypoints.length;
+      const windowMoq = createWindowMoq(responseJson);
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await instance.load({ manifestURL });
+
+      // Assert
+      expect(windowMoq.document.createElement).toHaveBeenCalledWith("script");
+      expect(windowMoq.document.createElement).toHaveBeenCalledTimes(
+        expectedCreatedScriptElements
+      );
+    });
+
+    it("should update create elements for css files", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: [
+          "https://absolute/absolute.css",
+          "static/js/main.cf47d9fd.css",
+        ],
+      };
+      const expectedCreatedLinkElements = responseJson.entrypoints.length;
+      const windowMoq = createWindowMoq(responseJson);
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await instance.load({ manifestURL });
+
+      // Assert
+      expect(windowMoq.document.createElement).toHaveBeenCalledWith("link");
+      expect(windowMoq.document.createElement).toHaveBeenCalledTimes(
+        expectedCreatedLinkElements
+      );
+    });
+
+    it("should append elements from manifest and sources to the DOM", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: [
+          "static/css/main.e6c13ad2.css",
+          "static/js/main.cf47d9fd.js",
+          "https://absolute/file3.css",
+        ],
+      };
+      const sources = [
+        "relativeSource.js",
+        "https://absolute/absoluteSource.css",
+      ];
+      const expectedJsAppendUrls = [
+        "https://cdn.fromdoppler.com/test/static/js/main.cf47d9fd.js",
+        "relativeSource.js", // It should continue as relative
+      ];
+      const expectedCssAppendUrls = [
+        "https://cdn.fromdoppler.com/test/static/css/main.e6c13ad2.css",
+        "https://absolute/file3.css",
+        "https://absolute/absoluteSource.css",
+      ];
+      const windowMoq = createWindowMoq(responseJson);
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await instance.load({ manifestURL, sources });
 
       // Assert
       expect(windowMoq.document.body.appendChild).toHaveBeenCalledTimes(

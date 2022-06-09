@@ -56,8 +56,32 @@ async function load({
   }
 }
 
+function normalizeArgs(
+  arg1: string | { manifestURL: string; sources?: string[] | undefined },
+  arg2: string[] | undefined
+) {
+  let manifestURL: string;
+  let sources: string[];
+  if (typeof arg1 == "object") {
+    manifestURL = arg1.manifestURL;
+    sources = arg1.sources ?? [];
+  } else {
+    manifestURL = arg1;
+    sources = arg2 ?? [];
+  }
+  return { manifestURL, sources };
+}
+
 interface IAssetServices {
+  /** @deprecated use object literal overload instead */
   load(manifestURL: string, sources?: string[]): Promise<void>;
+  load({
+    manifestURL,
+    sources,
+  }: {
+    manifestURL: string;
+    sources?: string[];
+  }): Promise<void>;
 }
 
 export class AssetServices implements IAssetServices {
@@ -78,7 +102,12 @@ export class AssetServices implements IAssetServices {
     this._document = document;
   }
 
-  load(manifestURL: string, sources: string[] = []) {
+  async load(
+    arg1: { manifestURL: string; sources?: string[] } | string,
+    arg2?: string[]
+  ): Promise<void> {
+    const { manifestURL, sources }: { manifestURL: string; sources: string[] } =
+      normalizeArgs(arg1, arg2);
     return load({
       fetch: this._fetch,
       document: this._document,
