@@ -93,3 +93,29 @@ interface IAssetServices {
 **Result:**
 
 It returns a promise. The promise is fulfilled when the _asset-manifest_ is loaded and the DOM updated. It does not warrant that the files referenced in the _asset-manifest_ have been loaded yet.
+
+## How to contribute
+
+Take into account that each time that we need to use a new version of the loader, we need to modify the places where it is being used. So, try to:
+
+- Keep it as backward-compatible as possible
+
+- Keep it stable, avoid risky changes and test it well
+
+- Keep options open for a graceful evolution of the API
+
+See [Jenkinsfile](./Jenkinsfile) for details about CI/CD process. For the moment, it is similar to our other frontend projects, see a more detailed explanation in [Unlayer Editor repository](https://github.com/FromDoppler/unlayer-editor#ci--cd).
+
+But, _the loader does not use the loader to be loaded 😛_, for that reason the _asset-manifest_ based versioning does not apply here.
+
+The [task DE-669](https://makingsense.atlassian.net/browse/DE-669) is to automate the related improvement in the continuous deployment process. But, in the meantime, this is the manual process to publish a new version:
+
+1. Do and merge in the `main` branch the desired changes.
+
+2. Generate a version creating the git tag, for example: `v1.2.3`.
+
+3. The previous step fires the CD process and generates the _asset-manifest_ file, for example: `https://cdn.fromdoppler.com/mfe-loader/asset-manifest-v1.2.3.json`.
+
+4. Read the _asset-manifest_ file, and identify the generated bundle file, for example: `https://cdn.fromdoppler.com/mfe-loader/static/js/main.a58832ef.js`
+
+5. Using our SFTP, copy that file to the friendly version file, for example: `https://cdn.fromdoppler.com/mfe-loader/static/js/main.a58832ef.js` to `https://cdn.fromdoppler.com/mfe-loader/loader-v1.2.3.js`
