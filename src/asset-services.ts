@@ -15,13 +15,15 @@ function addRef(document: Document, entrypoint: string) {
       let link = document.createElement("link");
       link.rel = "stylesheet";
       link.href = entrypoint;
-      (link as any).async = false;
+      (link as any).async = false; // TODO: it seems to be superfluous, remove
+      // TODO: DE-666 - render this element near the script element where load is invoked
       document.head.appendChild(link);
       break;
     case ".js":
       let script = document.createElement("script");
       script.src = entrypoint;
       script.async = false;
+      // TODO: DE-666 - render this element near the script element where load is invoked
       document.body.appendChild(script);
       break;
     default:
@@ -52,6 +54,10 @@ async function load({
       addRef(document, entrypoint);
     });
   } catch (error) {
+    // TODO: DE-667 - improve it, we are loosing error information here
+    // Consider using Loggly
+    // Consider applying retries
+    // Consider allowing run fallback code
     throw new Error("Error getting assets file: " + manifestURL);
   }
 }
