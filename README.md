@@ -31,3 +31,65 @@ In the HTML files, this loader is included and then used to load the entry point
 ![example sequence diagram](https://andresmoschini.github.io/doppler-microfrontends/diagram5-nuevo-editor.png)
 
 See more details in these slides: <https://andresmoschini.github.io/doppler-microfrontends/>.
+
+## How to use it
+
+1. Add the reference to the last version of the loader:
+
+   ```html
+   <script src="https://cdn.fromdoppler.com/mfe-loader/loader-{version}.js"></script>
+   ```
+
+2. Load the dependencies
+
+   ```html
+   <script type="text/javascript">
+     // Optional configuration here
+     assetServices.load({
+       manifestURL: "{asset-manifest-URL}",
+     });
+   </script>
+   ```
+
+### Configure the dependencies
+
+Some dependencies require configuration. In general, we are doing it using global variables defined by convention. For example:
+
+```html
+<script type="text/javascript">
+  window["editors-webapp-configuration"] = {
+    basename: "editors-demo",
+    unlayerProjectId: 32092,
+    htmlEditorApiBaseUrl: "https://apis.fromdoppler.com/html-editor",
+    loginPageUrl: "https://app.fromdoppler.com/login"
+  };
+
+  assetServices.load({
+    // . . .
+</script>
+```
+
+### `assetServices.load()`
+
+```typescript
+interface IAssetServices {
+  load({
+    manifestURL,
+    sources,
+  }: {
+    manifestURL: string;
+    sources?: string[];
+  }): Promise<void>;
+  // . . .
+}
+```
+
+**Parameters:**
+
+- `manifestURL`: It is the URL of the _asset-manifest_.
+
+- `sources`: A optional list of JavaScript or CSS resources that will be loaded after the files referenced in the _asset-manifest_.
+
+**Result:**
+
+It returns a promise. The promise is fulfilled when the _asset-manifest_ is loaded and the DOM updated. It does not warrant that the files referenced in the _asset-manifest_ have been loaded yet.
