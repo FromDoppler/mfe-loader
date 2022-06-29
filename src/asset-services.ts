@@ -127,7 +127,9 @@ export class AssetServices implements IAssetServices {
     const {
       manifestURL,
       sources,
-      nodeToRenderBefore = this._document.currentScript!,
+      nodeToRenderBefore = this._document.currentScript ||
+        this._document.head.firstChild ||
+        this._document.body,
     } = normalizeArgs(arg1, arg2);
 
     return load({
