@@ -8,7 +8,15 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   });
 }
 
-function addRef(document: Document, entrypoint: string) {
+function addRef({
+  document,
+  entrypoint,
+  nodeToRenderBefore,
+}: {
+  document: Document;
+  entrypoint: string;
+  nodeToRenderBefore: Node;
+}) {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
   switch (entrypoint.match(pattern)![0]) {
     case ".css":
@@ -16,15 +24,13 @@ function addRef(document: Document, entrypoint: string) {
       link.rel = "stylesheet";
       link.href = entrypoint;
       (link as any).async = false; // TODO: it seems to be superfluous, remove
-      // TODO: DE-666 - render this element near the script element where load is invoked
-      document.head.appendChild(link);
+      nodeToRenderBefore.parentNode!.insertBefore(link, nodeToRenderBefore);
       break;
     case ".js":
       let script = document.createElement("script");
       script.src = entrypoint;
       script.async = false;
-      // TODO: DE-666 - render this element near the script element where load is invoked
-      document.body.appendChild(script);
+      nodeToRenderBefore.parentNode!.insertBefore(script, nodeToRenderBefore);
       break;
     default:
       // do nothing
@@ -37,11 +43,13 @@ async function load({
   document,
   manifestURL,
   sources,
+  nodeToRenderBefore,
 }: {
   fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
   document: Document;
   manifestURL: string;
   sources: string[];
+  nodeToRenderBefore: Node;
 }): Promise<void> {
   // TODO: DE-667 - improve error handling
   // Consider using Loggly
@@ -54,24 +62,28 @@ async function load({
     data.entrypoints
   );
   entrypoints.concat(sources).forEach((entrypoint) => {
-    addRef(document, entrypoint);
+    addRef({ document, entrypoint, nodeToRenderBefore });
   });
 }
 
 function normalizeArgs(
-  arg1: string | { manifestURL: string; sources?: string[] | undefined },
+  arg1:
+    | string
+    | { manifestURL: string; sources?: string[]; nodeToRenderBefore?: Node },
   arg2: string[] | undefined
 ) {
   let manifestURL: string;
   let sources: string[];
+  let nodeToRenderBefore: Node | undefined;
   if (typeof arg1 == "object") {
     manifestURL = arg1.manifestURL;
     sources = arg1.sources ?? [];
+    nodeToRenderBefore = arg1.nodeToRenderBefore;
   } else {
     manifestURL = arg1;
     sources = arg2 ?? [];
   }
-  return { manifestURL, sources };
+  return { manifestURL, sources, nodeToRenderBefore };
 }
 
 interface IAssetServices {
@@ -80,9 +92,11 @@ interface IAssetServices {
   load({
     manifestURL,
     sources,
+    nodeToRenderBefore,
   }: {
     manifestURL: string;
     sources?: string[];
+    nodeToRenderBefore?: Node;
   }): Promise<void>;
 }
 
@@ -105,16 +119,23 @@ export class AssetServices implements IAssetServices {
   }
 
   async load(
-    arg1: { manifestURL: string; sources?: string[] } | string,
+    arg1:
+      | string
+      | { manifestURL: string; sources?: string[]; nodeToRenderBefore?: Node },
     arg2?: string[]
   ): Promise<void> {
-    const { manifestURL, sources }: { manifestURL: string; sources: string[] } =
-      normalizeArgs(arg1, arg2);
+    const {
+      manifestURL,
+      sources,
+      nodeToRenderBefore = this._document.currentScript!,
+    } = normalizeArgs(arg1, arg2);
+
     return load({
       fetch: this._fetch,
       document: this._document,
       manifestURL,
       sources,
+      nodeToRenderBefore,
     });
   }
 }

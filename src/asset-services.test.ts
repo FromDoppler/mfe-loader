@@ -141,24 +141,33 @@ describe(AssetServices.name, () => {
       await act(instance, { manifestURL, sources });
 
       // Assert
-      expect(windowMoq.document.body.appendChild).toHaveBeenCalledTimes(
-        expectedJsAppendUrls.length
+      expect(
+        windowMoq.document.currentScript.parentNode.insertBefore
+      ).toHaveBeenCalledTimes(
+        expectedJsAppendUrls.length + expectedCssAppendUrls.length
       );
       expectedJsAppendUrls.forEach((url) => {
-        expect(windowMoq.document.body.appendChild).toHaveBeenCalledWith({
-          async: false,
-          src: url,
-        });
+        expect(
+          windowMoq.document.currentScript.parentNode.insertBefore
+        ).toHaveBeenCalledWith(
+          {
+            async: false,
+            src: url,
+          },
+          windowMoq.document.currentScript
+        );
       });
-      expect(windowMoq.document.head.appendChild).toHaveBeenCalledTimes(
-        expectedCssAppendUrls.length
-      );
       expectedCssAppendUrls.forEach((url) => {
-        expect(windowMoq.document.head.appendChild).toHaveBeenCalledWith({
-          rel: "stylesheet",
-          async: false,
-          href: url,
-        });
+        expect(
+          windowMoq.document.currentScript.parentNode.insertBefore
+        ).toHaveBeenCalledWith(
+          {
+            rel: "stylesheet",
+            async: false,
+            href: url,
+          },
+          windowMoq.document.currentScript
+        );
       });
     });
   });
@@ -171,11 +180,10 @@ function createWindowMoq(responseJson: { entrypoints: string[] }) {
     })),
     document: {
       createElement: jest.fn(() => ({})),
-      body: {
-        appendChild: jest.fn(),
-      },
-      head: {
-        appendChild: jest.fn(),
+      currentScript: {
+        parentNode: {
+          insertBefore: jest.fn(),
+        },
       },
     },
   };
