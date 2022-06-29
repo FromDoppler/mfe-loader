@@ -8,15 +8,13 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   });
 }
 
-function addRef({
+function createElement({
   document,
   entrypoint,
-  nodeToRenderBefore,
 }: {
   document: Document;
   entrypoint: string;
-  nodeToRenderBefore: Node;
-}) {
+}): HTMLElement | null {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
   switch (entrypoint.match(pattern)![0]) {
     case ".css":
@@ -24,18 +22,25 @@ function addRef({
       link.rel = "stylesheet";
       link.href = entrypoint;
       (link as any).async = false; // TODO: it seems to be superfluous, remove
-      nodeToRenderBefore.parentNode!.insertBefore(link, nodeToRenderBefore);
-      break;
+      return link;
     case ".js":
       let script = document.createElement("script");
       script.src = entrypoint;
       script.async = false;
-      nodeToRenderBefore.parentNode!.insertBefore(script, nodeToRenderBefore);
-      break;
+      return script;
     default:
-      // do nothing
-      break;
+      return null;
   }
+}
+
+function addElement({
+  element,
+  nodeToRenderBefore,
+}: {
+  element: HTMLElement;
+  nodeToRenderBefore: Node;
+}) {
+  nodeToRenderBefore.parentNode!.insertBefore(element, nodeToRenderBefore);
 }
 
 async function load({
@@ -61,9 +66,13 @@ async function load({
     manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
     data.entrypoints
   );
-  entrypoints.concat(sources).forEach((entrypoint) => {
-    addRef({ document, entrypoint, nodeToRenderBefore });
-  });
+  entrypoints
+    .concat(sources)
+    .map((entrypoint) => createElement({ document, entrypoint }))
+    .filter((x): x is HTMLElement => !!x)
+    .forEach((element) => {
+      addElement({ element, nodeToRenderBefore });
+    });
 }
 
 function normalizeArgs(
