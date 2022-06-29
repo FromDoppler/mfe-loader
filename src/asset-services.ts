@@ -29,6 +29,7 @@ function createElement({
       script.async = false;
       return script;
     default:
+      console.warn(`Unexpected entrypoint extension: ${entrypoint}`);
       return null;
   }
 }
