@@ -43,23 +43,19 @@ async function load({
   manifestURL: string;
   sources: string[];
 }): Promise<void> {
-  try {
-    const response = await fetch(manifestURL);
-    const data = await response.json();
-    const entrypoints = ensureAbsoluteURLs(
-      manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
-      data.entrypoints
-    );
-    entrypoints.concat(sources).forEach((entrypoint) => {
-      addRef(document, entrypoint);
-    });
-  } catch (error) {
-    // TODO: DE-667 - improve it, we are loosing error information here
-    // Consider using Loggly
-    // Consider applying retries
-    // Consider allowing run fallback code
-    throw new Error("Error getting assets file: " + manifestURL);
-  }
+  // TODO: DE-667 - improve error handling
+  // Consider using Loggly
+  // Consider applying retries
+  // Consider allowing run fallback code
+  const response = await fetch(manifestURL);
+  const data = await response.json();
+  const entrypoints = ensureAbsoluteURLs(
+    manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
+    data.entrypoints
+  );
+  entrypoints.concat(sources).forEach((entrypoint) => {
+    addRef(document, entrypoint);
+  });
 }
 
 function normalizeArgs(
