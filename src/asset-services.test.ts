@@ -141,25 +141,77 @@ describe(AssetServices.name, () => {
       await act(instance, { manifestURL, sources });
 
       // Assert
-      expect(windowMoq.document.body.appendChild).toHaveBeenCalledTimes(
-        expectedJsAppendUrls.length
+      expect(
+        windowMoq.document.currentScript.parentNode.insertBefore
+      ).toHaveBeenCalledTimes(
+        expectedJsAppendUrls.length + expectedCssAppendUrls.length
       );
       expectedJsAppendUrls.forEach((url) => {
-        expect(windowMoq.document.body.appendChild).toHaveBeenCalledWith({
-          async: false,
-          src: url,
-        });
+        expect(
+          windowMoq.document.currentScript.parentNode.insertBefore
+        ).toHaveBeenCalledWith(
+          {
+            async: false,
+            src: url,
+          },
+          windowMoq.document.currentScript
+        );
       });
-      expect(windowMoq.document.head.appendChild).toHaveBeenCalledTimes(
-        expectedCssAppendUrls.length
-      );
       expectedCssAppendUrls.forEach((url) => {
-        expect(windowMoq.document.head.appendChild).toHaveBeenCalledWith({
-          rel: "stylesheet",
-          async: false,
-          href: url,
-        });
+        expect(
+          windowMoq.document.currentScript.parentNode.insertBefore
+        ).toHaveBeenCalledWith(
+          {
+            rel: "stylesheet",
+            async: false,
+            href: url,
+          },
+          windowMoq.document.currentScript
+        );
       });
+    });
+
+    it("should append elements to the beginning of the head when currentScript is not defined", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: ["static/css/main.e6c13ad2.css"],
+      };
+      const windowMoq = createWindowMoq(responseJson);
+      (windowMoq.document as any).currentScript = null;
+
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await act(instance, { manifestURL });
+
+      // Assert
+      expect(
+        windowMoq.document.head.firstChild.parentNode.insertBefore
+      ).toHaveBeenCalled();
+    });
+
+    it("should append elements before body when currentScript is not defined and head is empty", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: ["static/css/main.e6c13ad2.css"],
+      };
+      const windowMoq = createWindowMoq(responseJson);
+      (windowMoq.document as any).currentScript = null;
+      (windowMoq.document as any).head = {};
+
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      await act(instance, { manifestURL });
+
+      // Assert
+      expect(
+        windowMoq.document.body.parentNode.insertBefore
+      ).toHaveBeenCalled();
     });
   });
 });
@@ -172,10 +224,21 @@ function createWindowMoq(responseJson: { entrypoints: string[] }) {
     document: {
       createElement: jest.fn(() => ({})),
       body: {
-        appendChild: jest.fn(),
+        parentNode: {
+          insertBefore: jest.fn(),
+        },
       },
       head: {
-        appendChild: jest.fn(),
+        firstChild: {
+          parentNode: {
+            insertBefore: jest.fn(),
+          },
+        },
+      },
+      currentScript: {
+        parentNode: {
+          insertBefore: jest.fn(),
+        },
       },
     },
   };

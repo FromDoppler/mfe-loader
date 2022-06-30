@@ -8,7 +8,13 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   });
 }
 
-function addRef(document: Document, entrypoint: string) {
+function createElement({
+  document,
+  entrypoint,
+}: {
+  document: Document;
+  entrypoint: string;
+}): HTMLElement | null {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
   switch (entrypoint.match(pattern)![0]) {
     case ".css":
@@ -16,20 +22,26 @@ function addRef(document: Document, entrypoint: string) {
       link.rel = "stylesheet";
       link.href = entrypoint;
       (link as any).async = false; // TODO: it seems to be superfluous, remove
-      // TODO: DE-666 - render this element near the script element where load is invoked
-      document.head.appendChild(link);
-      break;
+      return link;
     case ".js":
       let script = document.createElement("script");
       script.src = entrypoint;
       script.async = false;
-      // TODO: DE-666 - render this element near the script element where load is invoked
-      document.body.appendChild(script);
-      break;
+      return script;
     default:
-      // do nothing
-      break;
+      console.warn(`Unexpected entrypoint extension: ${entrypoint}`);
+      return null;
   }
+}
+
+function addElementBefore({
+  element,
+  referenceNode,
+}: {
+  element: HTMLElement;
+  referenceNode: Node;
+}) {
+  referenceNode.parentNode!.insertBefore(element, referenceNode);
 }
 
 async function load({
@@ -37,11 +49,13 @@ async function load({
   document,
   manifestURL,
   sources,
+  referenceNode,
 }: {
   fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
   document: Document;
   manifestURL: string;
   sources: string[];
+  referenceNode: Node;
 }): Promise<void> {
   // TODO: DE-667 - improve error handling
   // Consider using Loggly
@@ -53,25 +67,33 @@ async function load({
     manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
     data.entrypoints
   );
-  entrypoints.concat(sources).forEach((entrypoint) => {
-    addRef(document, entrypoint);
-  });
+  entrypoints
+    .concat(sources)
+    .map((entrypoint) => createElement({ document, entrypoint }))
+    .filter((x): x is HTMLElement => !!x)
+    .forEach((element) => {
+      addElementBefore({ element, referenceNode });
+    });
 }
 
 function normalizeArgs(
-  arg1: string | { manifestURL: string; sources?: string[] | undefined },
+  arg1:
+    | string
+    | { manifestURL: string; sources?: string[]; referenceNode?: Node },
   arg2: string[] | undefined
 ) {
   let manifestURL: string;
   let sources: string[];
+  let referenceNode: Node | undefined;
   if (typeof arg1 == "object") {
     manifestURL = arg1.manifestURL;
     sources = arg1.sources ?? [];
+    referenceNode = arg1.referenceNode;
   } else {
     manifestURL = arg1;
     sources = arg2 ?? [];
   }
-  return { manifestURL, sources };
+  return { manifestURL, sources, referenceNode };
 }
 
 interface IAssetServices {
@@ -80,9 +102,12 @@ interface IAssetServices {
   load({
     manifestURL,
     sources,
+    referenceNode,
   }: {
     manifestURL: string;
     sources?: string[];
+    /** the new elements will be added before this one */
+    referenceNode?: Node;
   }): Promise<void>;
 }
 
@@ -105,16 +130,25 @@ export class AssetServices implements IAssetServices {
   }
 
   async load(
-    arg1: { manifestURL: string; sources?: string[] } | string,
+    arg1:
+      | string
+      | { manifestURL: string; sources?: string[]; referenceNode?: Node },
     arg2?: string[]
   ): Promise<void> {
-    const { manifestURL, sources }: { manifestURL: string; sources: string[] } =
-      normalizeArgs(arg1, arg2);
+    const {
+      manifestURL,
+      sources,
+      referenceNode = this._document.currentScript ||
+        this._document.head.firstChild ||
+        this._document.body,
+    } = normalizeArgs(arg1, arg2);
+
     return load({
       fetch: this._fetch,
       document: this._document,
       manifestURL,
       sources,
+      referenceNode,
     });
   }
 }
