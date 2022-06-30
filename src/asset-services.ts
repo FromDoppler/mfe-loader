@@ -34,14 +34,14 @@ function createElement({
   }
 }
 
-function addElement({
+function addElementBefore({
   element,
-  nodeToRenderBefore,
+  referenceNode,
 }: {
   element: HTMLElement;
-  nodeToRenderBefore: Node;
+  referenceNode: Node;
 }) {
-  nodeToRenderBefore.parentNode!.insertBefore(element, nodeToRenderBefore);
+  referenceNode.parentNode!.insertBefore(element, referenceNode);
 }
 
 async function load({
@@ -49,13 +49,13 @@ async function load({
   document,
   manifestURL,
   sources,
-  nodeToRenderBefore,
+  referenceNode,
 }: {
   fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
   document: Document;
   manifestURL: string;
   sources: string[];
-  nodeToRenderBefore: Node;
+  referenceNode: Node;
 }): Promise<void> {
   // TODO: DE-667 - improve error handling
   // Consider using Loggly
@@ -72,28 +72,28 @@ async function load({
     .map((entrypoint) => createElement({ document, entrypoint }))
     .filter((x): x is HTMLElement => !!x)
     .forEach((element) => {
-      addElement({ element, nodeToRenderBefore });
+      addElementBefore({ element, referenceNode });
     });
 }
 
 function normalizeArgs(
   arg1:
     | string
-    | { manifestURL: string; sources?: string[]; nodeToRenderBefore?: Node },
+    | { manifestURL: string; sources?: string[]; referenceNode?: Node },
   arg2: string[] | undefined
 ) {
   let manifestURL: string;
   let sources: string[];
-  let nodeToRenderBefore: Node | undefined;
+  let referenceNode: Node | undefined;
   if (typeof arg1 == "object") {
     manifestURL = arg1.manifestURL;
     sources = arg1.sources ?? [];
-    nodeToRenderBefore = arg1.nodeToRenderBefore;
+    referenceNode = arg1.referenceNode;
   } else {
     manifestURL = arg1;
     sources = arg2 ?? [];
   }
-  return { manifestURL, sources, nodeToRenderBefore };
+  return { manifestURL, sources, referenceNode };
 }
 
 interface IAssetServices {
@@ -102,11 +102,12 @@ interface IAssetServices {
   load({
     manifestURL,
     sources,
-    nodeToRenderBefore,
+    referenceNode,
   }: {
     manifestURL: string;
     sources?: string[];
-    nodeToRenderBefore?: Node;
+    /** the new elements will be added before this one */
+    referenceNode?: Node;
   }): Promise<void>;
 }
 
@@ -131,13 +132,13 @@ export class AssetServices implements IAssetServices {
   async load(
     arg1:
       | string
-      | { manifestURL: string; sources?: string[]; nodeToRenderBefore?: Node },
+      | { manifestURL: string; sources?: string[]; referenceNode?: Node },
     arg2?: string[]
   ): Promise<void> {
     const {
       manifestURL,
       sources,
-      nodeToRenderBefore = this._document.currentScript ||
+      referenceNode = this._document.currentScript ||
         this._document.head.firstChild ||
         this._document.body,
     } = normalizeArgs(arg1, arg2);
@@ -147,7 +148,7 @@ export class AssetServices implements IAssetServices {
       document: this._document,
       manifestURL,
       sources,
-      nodeToRenderBefore,
+      referenceNode,
     });
   }
 }
