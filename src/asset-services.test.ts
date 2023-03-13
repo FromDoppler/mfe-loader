@@ -214,6 +214,36 @@ describe(AssetServices.name, () => {
       ).toHaveBeenCalled();
     });
   });
+
+  describe("getEntrypoints", () => {
+    it("should request for the manifest and parse the entrypoints", async () => {
+      // Arrange
+      const manifestURL =
+        "https://cdn.fromdoppler.com/test/asset-manifest-v1.json";
+      const responseJson = {
+        entrypoints: [
+          "static/css/main.e6c13ad2.css",
+          "static/js/main.cf47d9fd.js",
+          "https://absolute/file3.css",
+        ],
+      };
+      const expectedEntrypointsUrls = [
+        "https://cdn.fromdoppler.com/test/static/css/main.e6c13ad2.css",
+        "https://cdn.fromdoppler.com/test/static/js/main.cf47d9fd.js",
+        "https://absolute/file3.css",
+      ];
+      const windowMoq = createWindowMoq(responseJson);
+      const instance = new AssetServices(windowMoq as any);
+
+      // Act
+      const result = await instance.getEntrypoints({ manifestURL });
+
+      // Assert
+      expect(windowMoq.fetch).toHaveBeenCalledTimes(1);
+      expect(windowMoq.fetch).toHaveBeenCalledWith(manifestURL);
+      expect(result).toEqual(expectedEntrypointsUrls);
+    });
+  });
 });
 
 function createWindowMoq(responseJson: { entrypoints: string[] }) {

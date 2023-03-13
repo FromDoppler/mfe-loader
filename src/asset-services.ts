@@ -1,3 +1,36 @@
+async function getEntrypoints({
+  fetch,
+  manifestURL,
+}: {
+  fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  manifestURL: string;
+}): Promise<string[]> {
+  const response = await fetch(manifestURL);
+  const data = await response.json();
+  const entrypoints = ensureAbsoluteURLs(
+    manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
+    data.entrypoints
+  );
+  return entrypoints;
+}
+
+function addEntrypointReferencesToDOM({
+  document,
+  entrypoints,
+  referenceNode,
+}: {
+  document: Document;
+  entrypoints: string[];
+  referenceNode: Node;
+}): void {
+  entrypoints
+    .map((entrypoint) => createElement({ document, entrypoint }))
+    .filter((x): x is HTMLElement => !!x)
+    .forEach((element) => {
+      addElementBefore({ element, referenceNode });
+    });
+}
+
 function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
   return entrypoints.map(function (entrypoint) {
@@ -61,19 +94,9 @@ async function load({
   // Consider using Loggly
   // Consider applying retries
   // Consider allowing run fallback code
-  const response = await fetch(manifestURL);
-  const data = await response.json();
-  const entrypoints = ensureAbsoluteURLs(
-    manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
-    data.entrypoints
-  );
-  entrypoints
-    .concat(sources)
-    .map((entrypoint) => createElement({ document, entrypoint }))
-    .filter((x): x is HTMLElement => !!x)
-    .forEach((element) => {
-      addElementBefore({ element, referenceNode });
-    });
+  const manifestEntrypoints = await getEntrypoints({ fetch, manifestURL });
+  const entrypoints = manifestEntrypoints.concat(sources);
+  addEntrypointReferencesToDOM({ document, entrypoints, referenceNode });
 }
 
 function normalizeArgs(
@@ -109,6 +132,7 @@ interface IAssetServices {
     /** the new elements will be added before this one */
     referenceNode?: Node;
   }): Promise<void>;
+  getEntrypoints({ manifestURL }: { manifestURL: string }): Promise<string[]>;
 }
 
 export class AssetServices implements IAssetServices {
@@ -149,6 +173,17 @@ export class AssetServices implements IAssetServices {
       manifestURL,
       sources,
       referenceNode,
+    });
+  }
+
+  async getEntrypoints({
+    manifestURL,
+  }: {
+    manifestURL: string;
+  }): Promise<string[]> {
+    return getEntrypoints({
+      fetch: this._fetch,
+      manifestURL,
     });
   }
 }
