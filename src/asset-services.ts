@@ -1,3 +1,19 @@
+async function getEntrypoints({
+  fetch,
+  manifestURL,
+}: {
+  fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  manifestURL: string;
+}): Promise<string[]> {
+  const response = await fetch(manifestURL);
+  const data = await response.json();
+  const entrypoints = ensureAbsoluteURLs(
+    manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
+    data.entrypoints
+  );
+  return entrypoints;
+}
+
 function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
   return entrypoints.map(function (entrypoint) {
@@ -61,12 +77,7 @@ async function load({
   // Consider using Loggly
   // Consider applying retries
   // Consider allowing run fallback code
-  const response = await fetch(manifestURL);
-  const data = await response.json();
-  const entrypoints = ensureAbsoluteURLs(
-    manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
-    data.entrypoints
-  );
+  const entrypoints = await getEntrypoints({ fetch, manifestURL });
   entrypoints
     .concat(sources)
     .map((entrypoint) => createElement({ document, entrypoint }))
