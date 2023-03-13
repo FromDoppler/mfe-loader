@@ -14,6 +14,23 @@ async function getEntrypoints({
   return entrypoints;
 }
 
+function addEntrypointReferencesToDOM({
+  document,
+  entrypoints,
+  referenceNode,
+}: {
+  document: Document;
+  entrypoints: string[];
+  referenceNode: Node;
+}): void {
+  entrypoints
+    .map((entrypoint) => createElement({ document, entrypoint }))
+    .filter((x): x is HTMLElement => !!x)
+    .forEach((element) => {
+      addElementBefore({ element, referenceNode });
+    });
+}
+
 function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
   const regExpIsAbsoluteURL = new RegExp("^(?:[a-z]+:)?//", "i");
   return entrypoints.map(function (entrypoint) {
@@ -77,14 +94,9 @@ async function load({
   // Consider using Loggly
   // Consider applying retries
   // Consider allowing run fallback code
-  const entrypoints = await getEntrypoints({ fetch, manifestURL });
-  entrypoints
-    .concat(sources)
-    .map((entrypoint) => createElement({ document, entrypoint }))
-    .filter((x): x is HTMLElement => !!x)
-    .forEach((element) => {
-      addElementBefore({ element, referenceNode });
-    });
+  const manifestEntrypoints = await getEntrypoints({ fetch, manifestURL });
+  const entrypoints = manifestEntrypoints.concat(sources);
+  addEntrypointReferencesToDOM({ document, entrypoints, referenceNode });
 }
 
 function normalizeArgs(
