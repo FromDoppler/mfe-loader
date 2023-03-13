@@ -132,6 +132,7 @@ interface IAssetServices {
     /** the new elements will be added before this one */
     referenceNode?: Node;
   }): Promise<void>;
+  getEntrypoints({ manifestURL }: { manifestURL: string }): Promise<string[]>;
 }
 
 export class AssetServices implements IAssetServices {
@@ -172,6 +173,17 @@ export class AssetServices implements IAssetServices {
       manifestURL,
       sources,
       referenceNode,
+    });
+  }
+
+  async getEntrypoints({
+    manifestURL,
+  }: {
+    manifestURL: string;
+  }): Promise<string[]> {
+    return getEntrypoints({
+      fetch: this._fetch,
+      manifestURL,
     });
   }
 }
