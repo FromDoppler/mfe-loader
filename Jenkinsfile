@@ -38,7 +38,7 @@ pipeline {
         }
         stage('Publish in our CDN') {
             environment {
-                PKG_NAME = "mfe-loader"
+                PKG_NAME = "mfe-loader${PACKAGE_SUFFIX}"
             }
             stages {
                 stage('Publish pre-release packages from pull request') {
