@@ -104,7 +104,7 @@ Take into account that each time that we need to use a new version of the loader
 
 - Keep options open for a graceful evolution of the API
 
-See [Jenkinsfile](./Jenkinsfile) for details about CI/CD process. For the moment, it is similar to our other frontend projects, see a more detailed explanation in [Unlayer Editor repository](https://github.com/FromDoppler/unlayer-editor#ci--cd).
+See [doppler-jenkins-ci.groovy](./doppler-jenkins-ci.groovy) for details about CI/CD process. For the moment, it is similar to our other frontend projects, see a more detailed explanation in [Unlayer Editor repository](https://github.com/FromDoppler/unlayer-editor#ci--cd).
 
 But, _the loader does not use the loader to be loaded 😛_, for that reason the _asset-manifest_ based versioning does not apply here.
 
