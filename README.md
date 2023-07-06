@@ -6,7 +6,7 @@ In the HTML files, this loader is included and then used to load the entry point
 
 ```html
 <!-- https://app.fromdoppler.com/editors/ -->
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <!-- . . . -->

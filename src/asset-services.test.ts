@@ -33,14 +33,14 @@ describe(AssetServices.name, () => {
       description: "deprecated",
       act: (
         instance: AssetServices,
-        { manifestURL, sources }: { manifestURL: string; sources?: string[] }
+        { manifestURL, sources }: { manifestURL: string; sources?: string[] },
       ) => instance.load(manifestURL, sources),
     },
     {
       description: "with object literal parameter",
       act: (
         instance: AssetServices,
-        parameters: { manifestURL: string; sources?: string[] }
+        parameters: { manifestURL: string; sources?: string[] },
       ) => instance.load(parameters),
     },
   ])("load ($description)", ({ act }) => {
@@ -82,7 +82,7 @@ describe(AssetServices.name, () => {
       // Assert
       expect(windowMoq.document.createElement).toHaveBeenCalledWith("script");
       expect(windowMoq.document.createElement).toHaveBeenCalledTimes(
-        expectedCreatedScriptElements
+        expectedCreatedScriptElements,
       );
     });
 
@@ -106,7 +106,7 @@ describe(AssetServices.name, () => {
       // Assert
       expect(windowMoq.document.createElement).toHaveBeenCalledWith("link");
       expect(windowMoq.document.createElement).toHaveBeenCalledTimes(
-        expectedCreatedLinkElements
+        expectedCreatedLinkElements,
       );
     });
 
@@ -142,31 +142,31 @@ describe(AssetServices.name, () => {
 
       // Assert
       expect(
-        windowMoq.document.currentScript.parentNode.insertBefore
+        windowMoq.document.currentScript.parentNode.insertBefore,
       ).toHaveBeenCalledTimes(
-        expectedJsAppendUrls.length + expectedCssAppendUrls.length
+        expectedJsAppendUrls.length + expectedCssAppendUrls.length,
       );
       expectedJsAppendUrls.forEach((url) => {
         expect(
-          windowMoq.document.currentScript.parentNode.insertBefore
+          windowMoq.document.currentScript.parentNode.insertBefore,
         ).toHaveBeenCalledWith(
           {
             async: false,
             src: url,
           },
-          windowMoq.document.currentScript
+          windowMoq.document.currentScript,
         );
       });
       expectedCssAppendUrls.forEach((url) => {
         expect(
-          windowMoq.document.currentScript.parentNode.insertBefore
+          windowMoq.document.currentScript.parentNode.insertBefore,
         ).toHaveBeenCalledWith(
           {
             rel: "stylesheet",
             async: false,
             href: url,
           },
-          windowMoq.document.currentScript
+          windowMoq.document.currentScript,
         );
       });
     });
@@ -188,7 +188,7 @@ describe(AssetServices.name, () => {
 
       // Assert
       expect(
-        windowMoq.document.head.firstChild.parentNode.insertBefore
+        windowMoq.document.head.firstChild.parentNode.insertBefore,
       ).toHaveBeenCalled();
     });
 
@@ -210,7 +210,7 @@ describe(AssetServices.name, () => {
 
       // Assert
       expect(
-        windowMoq.document.body.parentNode.insertBefore
+        windowMoq.document.body.parentNode.insertBefore,
       ).toHaveBeenCalled();
     });
   });
