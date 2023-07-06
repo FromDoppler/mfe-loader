@@ -9,7 +9,7 @@ async function getEntrypoints({
   const data = await response.json();
   const entrypoints = ensureAbsoluteURLs(
     manifestURL.substring(0, manifestURL.lastIndexOf("/") + 1),
-    data.entrypoints
+    data.entrypoints,
   );
   return entrypoints;
 }
@@ -103,7 +103,7 @@ function normalizeArgs(
   arg1:
     | string
     | { manifestURL: string; sources?: string[]; referenceNode?: Node },
-  arg2: string[] | undefined
+  arg2: string[] | undefined,
 ) {
   let manifestURL: string;
   let sources: string[];
@@ -138,7 +138,7 @@ interface IAssetServices {
 export class AssetServices implements IAssetServices {
   private _fetch: (
     input: RequestInfo,
-    init?: RequestInit | undefined
+    init?: RequestInit | undefined,
   ) => Promise<Response>;
   private _document: Document;
 
@@ -157,7 +157,7 @@ export class AssetServices implements IAssetServices {
     arg1:
       | string
       | { manifestURL: string; sources?: string[]; referenceNode?: Node },
-    arg2?: string[]
+    arg2?: string[],
   ): Promise<void> {
     const {
       manifestURL,
