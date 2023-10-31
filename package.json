@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
-    "@types/jest": "^29.5.3",
+    "@types/jest": "^29.5.7",
     "@types/node": "^20.4.8",
     "eclint": "^2.8.1",
     "prettier": "^3.0.1",
