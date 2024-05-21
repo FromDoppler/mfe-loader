@@ -90,6 +90,10 @@ interface IAssetServices {
 
 - `sources`: A optional list of JavaScript or CSS resources that will be loaded after the files referenced in the _asset-manifest_.
 
+- `referenceNode` (missing documentation)
+
+- `options` (missing documentation)
+
 **Result:**
 
 It returns a promise. The promise is fulfilled when the _asset-manifest_ is loaded and the DOM updated. It does not warrant that the files referenced in the _asset-manifest_ have been loaded yet.
