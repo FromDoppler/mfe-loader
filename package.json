@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@types/jest": "^29.5.3",
-    "@types/node": "^20.4.8",
-    "eclint": "^2.8.1",
-    "prettier": "^3.0.1",
+    "@testing-library/jest-dom": "6.4.5",
+    "@types/jest": "29.5.12",
+    "@types/node": "20.12.12",
+    "eclint": "2.8.1",
+    "prettier": "3.2.5",
     "react-scripts": "5.0.1",
-    "typescript": "^5.1.6"
+    "typescript": "5.4.5"
   },
   "scripts": {
     "start": "react-scripts start",
