@@ -1,3 +1,9 @@
+type Options = Readonly<{ forceScriptModuleType: boolean }>;
+
+const defaultOptions: Options = {
+  forceScriptModuleType: false,
+};
+
 async function getEntrypoints({
   fetch,
   manifestURL,
@@ -18,13 +24,15 @@ function addEntrypointReferencesToDOM({
   document,
   entrypoints,
   referenceNode,
+  options,
 }: {
   document: Document;
   entrypoints: string[];
   referenceNode: Node;
+  options: Options;
 }): void {
   entrypoints
-    .map((entrypoint) => createElement({ document, entrypoint }))
+    .map((entrypoint) => createElement({ document, entrypoint, options }))
     .filter((x): x is HTMLElement => !!x)
     .forEach((element) => {
       addElementBefore({ element, referenceNode });
@@ -44,9 +52,11 @@ function ensureAbsoluteURLs(baseURL: string, entrypoints: string[]) {
 function createElement({
   document,
   entrypoint,
+  options,
 }: {
   document: Document;
   entrypoint: string;
+  options: Options;
 }): HTMLElement | null {
   const pattern = /\.([0-9a-z]+)(?=[?#])|(\.)(?:[\w]+)$/gim;
   switch (entrypoint.match(pattern)![0]) {
@@ -60,6 +70,9 @@ function createElement({
       let script = document.createElement("script");
       script.src = entrypoint;
       script.async = false;
+      if (options.forceScriptModuleType) {
+        script.type = "module";
+      }
       return script;
     default:
       console.warn(`Unexpected entrypoint extension: ${entrypoint}`);
@@ -83,12 +96,14 @@ async function load({
   manifestURL,
   sources,
   referenceNode,
+  options,
 }: {
   fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
   document: Document;
   manifestURL: string;
   sources: string[];
   referenceNode: Node;
+  options: Options;
 }): Promise<void> {
   // TODO: DE-667 - improve error handling
   // Consider using Loggly
@@ -96,27 +111,41 @@ async function load({
   // Consider allowing run fallback code
   const manifestEntrypoints = await getEntrypoints({ fetch, manifestURL });
   const entrypoints = manifestEntrypoints.concat(sources);
-  addEntrypointReferencesToDOM({ document, entrypoints, referenceNode });
+  addEntrypointReferencesToDOM({
+    document,
+    entrypoints,
+    referenceNode,
+    options,
+  });
 }
 
 function normalizeArgs(
   arg1:
     | string
-    | { manifestURL: string; sources?: string[]; referenceNode?: Node },
+    | {
+        manifestURL: string;
+        sources?: string[];
+        referenceNode?: Node;
+        options?: Partial<Options>;
+      },
   arg2: string[] | undefined,
 ) {
   let manifestURL: string;
   let sources: string[];
   let referenceNode: Node | undefined;
+  let partialOptions: Partial<Options>;
   if (typeof arg1 == "object") {
     manifestURL = arg1.manifestURL;
     sources = arg1.sources ?? [];
     referenceNode = arg1.referenceNode;
+    partialOptions = arg1.options ?? {};
   } else {
     manifestURL = arg1;
     sources = arg2 ?? [];
+    partialOptions = {};
   }
-  return { manifestURL, sources, referenceNode };
+  const options: Options = { ...defaultOptions, ...partialOptions };
+  return { manifestURL, sources, referenceNode, options };
 }
 
 interface IAssetServices {
@@ -156,7 +185,12 @@ export class AssetServices implements IAssetServices {
   async load(
     arg1:
       | string
-      | { manifestURL: string; sources?: string[]; referenceNode?: Node },
+      | {
+          manifestURL: string;
+          sources?: string[];
+          referenceNode?: Node;
+          options?: Partial<Options>;
+        },
     arg2?: string[],
   ): Promise<void> {
     const {
@@ -165,6 +199,7 @@ export class AssetServices implements IAssetServices {
       referenceNode = this._document.currentScript ||
         this._document.head.firstChild ||
         this._document.body,
+      options,
     } = normalizeArgs(arg1, arg2);
 
     return load({
@@ -173,6 +208,7 @@ export class AssetServices implements IAssetServices {
       manifestURL,
       sources,
       referenceNode,
+      options,
     });
   }
 
