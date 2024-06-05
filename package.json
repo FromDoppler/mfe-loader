@@ -5,7 +5,7 @@
   "dependencies": {
     "@testing-library/jest-dom": "6.4.5",
     "@types/jest": "29.5.12",
-    "@types/node": "20.14.1",
+    "@types/node": "20.14.2",
     "eclint": "2.8.1",
     "prettier": "3.3.0",
     "react-scripts": "5.0.1",
