@@ -3,7 +3,7 @@
   "version": "2.3.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "6.4.6",
+    "@testing-library/jest-dom": "6.4.7",
     "@types/jest": "29.5.12",
     "@types/node": "20.14.11",
     "eclint": "2.8.1",
