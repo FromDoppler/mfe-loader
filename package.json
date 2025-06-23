@@ -7,7 +7,7 @@
     "@types/jest": "30.0.0",
     "@types/node": "22.15.32",
     "eclint": "2.8.1",
-    "prettier": "3.5.3",
+    "prettier": "3.6.0",
     "react-scripts": "5.0.1",
     "typescript": "5.4.5"
   },
