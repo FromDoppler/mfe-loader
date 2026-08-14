@@ -98,6 +98,22 @@ interface IAssetServices {
 
 It returns a promise. The promise is fulfilled when the _asset-manifest_ is loaded and the DOM updated. It does not warrant that the files referenced in the _asset-manifest_ have been loaded yet.
 
+## CDN cleanup during deployment
+
+The Jenkins publishing pipeline runs a CDN cleanup after uploading mutable packages such as `main`,
+`INT`, and pull request builds. If the pipeline needs to run faster or the cleanup has to be skipped
+temporarily, pass `--skip-clean` to `build-n-publish.sh`.
+
+Example:
+
+```sh
+sh build-n-publish.sh \
+  --package=hello-webapp \
+  --commit=${GIT_COMMIT} \
+  --name=INT \
+  --skip-clean
+```
+
 ## How to contribute
 
 Take into account that each time that we need to use a new version of the loader, we need to modify the places where it is being used. So, try to:
